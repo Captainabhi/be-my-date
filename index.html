@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Be My Date? ❤️</title>
-    <!-- Include EmailJS SDK -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -64,7 +62,7 @@
             align-items: center;
         }
 
-        button {
+        button, .submit-btn {
             padding: 12px 35px;
             font-size: 1.2rem;
             font-weight: bold;
@@ -74,13 +72,13 @@
             transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        #yesBtn, #submitBtn {
+        #yesBtn, .submit-btn {
             background-color: #ff4d6d;
             color: white;
             box-shadow: 0 5px 15px rgba(255, 77, 109, 0.4);
         }
 
-        #yesBtn:hover, #submitBtn:hover {
+        #yesBtn:hover, .submit-btn:hover {
             transform: scale(1.05);
             background-color: #ff758f;
         }
@@ -89,14 +87,13 @@
             background-color: #a4133c;
             color: white;
             position: absolute;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
         }
 
         .hidden {
             display: none !important;
         }
 
-        /* Form Controls for Success Screen */
         .form-group {
             margin-bottom: 20px;
             text-align: left;
@@ -119,7 +116,6 @@
             outline: none;
             color: #590d22;
             background: white;
-            transition: border-color 0.3s;
         }
 
         .date-picker:focus, .text-input:focus {
@@ -131,21 +127,12 @@
             height: 80px;
         }
 
-        #submitBtn {
+        .submit-btn {
             width: 100%;
             margin-top: 10px;
+            display: block;
         }
 
-        /* Hidden YouTube Iframe Container */
-        #yt-player-container {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* Falling Hearts Animation */
         .heart {
             position: absolute;
             color: #ff758f;
@@ -163,15 +150,10 @@
 </head>
 <body>
 
-    <!-- Hidden YouTube Player Container (Change VIDEO_ID below to change the track) -->
-    <div id="yt-player-container">
-        <iframe id="yt-player" width="100" height="100" 
-                src="https://www.youtube.com/embed/2Vv-BfVoq4g?enablejsapi=1&controls=0&loop=1" 
-                allow="autoplay">
-        </iframe>
-    </div>
+    <audio id="bgMusic" loop preload="auto">
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
 
-    <!-- Main Proposal Card -->
     <div class="container" id="proposalCard">
         <div class="gif-container">
             <img src="https://media.tenor.com/w9zXzY9tV7MAAAAi/mocha-cute.gif" alt="Cute Bear">
@@ -184,7 +166,6 @@
         </div>
     </div>
 
-    <!-- Success Screen & Form -->
     <div class="container hidden" id="successCard">
         <div class="gif-container">
             <img src="https://media.tenor.com/X91Gf9G8v68AAAAi/bubu-dudu-bubu.gif" alt="Happy Bear">
@@ -192,44 +173,44 @@
         <h1>YAYYYYY! 🥰</h1>
         <p>Let's make plans!</p>
         
-        <div class="form-group">
-            <label for="datePicker">Pick a day when you are free:</label>
-            <input type="date" class="date-picker" id="datePicker">
-        </div>
+        <form action="https://formspree.io/f/your-email@example.com" method="POST" id="dateForm">
+            <div class="form-group">
+                <label for="datePicker">Pick a day when you are free:</label>
+                <input type="date" class="date-picker" id="datePicker" name="Date Selected" required>
+            </div>
 
-        <div class="form-group">
-            <label for="dateDesc">What do you want this date to be?</label>
-            <textarea class="text-input" id="dateDesc" placeholder="e.g., A cozy cafe coffee date, stargazing, or a long bike ride..."></textarea>
-        </div>
+            <div class="form-group">
+                <label for="dateDesc">What do you want this date to be?</label>
+                <textarea class="text-input" id="dateDesc" name="Dream Date Description" placeholder="e.g., A cozy cafe coffee date, stargazing..." required></textarea>
+            </div>
 
-        <button id="submitBtn">Send to Me ✨</button>
+            <button type="submit" class="submit-btn">Send to Me ✨</button>
+        </form>
     </div>
 
     <script>
-        // Initialize EmailJS with your Public Key
-        emailjs.init("CJeIb1DApeLerxJxo"); 
-
         const proposalCard = document.getElementById('proposalCard');
         const successCard = document.getElementById('successCard');
         const yesBtn = document.getElementById('yesBtn');
         const noBtn = document.getElementById('noBtn');
-        const submitBtn = document.getElementById('submitBtn');
+        const bgMusic = document.getElementById('bgMusic');
         
         let musicStarted = false;
 
-        // Function to control YouTube iframe music playback
+        // Force browser to play the audio link upon any interaction
         function startMusic() {
             if (!musicStarted) {
-                const iframe = document.getElementById('yt-player');
-                // Posting playVideo message to YouTube Iframe API
-                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                musicStarted = true;
+                bgMusic.volume = 0.5;
+                bgMusic.play()
+                    .then(() => musicStarted = true)
+                    .catch(err => console.log("Audio waiting for stronger interaction click."));
             }
         }
 
         // Runaway "No" Button logic
         function moveNoButton() {
-            startMusic(); 
+            startMusic(); // Tries playing music when they hover/touch the No button
+            
             const maxX = window.innerWidth - noBtn.offsetWidth - 40;
             const maxY = window.innerHeight - noBtn.offsetHeight - 40;
             const randomX = Math.floor(Math.random() * maxX);
@@ -248,46 +229,10 @@
 
         // Click YES button
         yesBtn.addEventListener('click', () => {
-            startMusic();
+            startMusic(); // Absolutely triggers music here because it's a solid click event
             proposalCard.classList.add('hidden');
             successCard.classList.remove('hidden');
             startHeartRain();
-        });
-
-        // Form Submit Handler (Sends email using EmailJS)
-        submitBtn.addEventListener('click', () => {
-            const datePicked = document.getElementById('datePicker').value;
-            const dateDescription = document.getElementById('dateDesc').value;
-
-            if (!datePicked || !dateDescription) {
-                alert("Please pick a day and tell me your dream date ideas! 😊");
-                return;
-            }
-
-            submitBtn.innerText = "Sending...";
-            submitBtn.disabled = true;
-
-            const templateParams = {
-                date_picked: datePicked,
-                date_description: dateDescription
-            };
-
-            // Send via EmailJS
-            emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams)
-                .then(() => {
-                    successCard.innerHTML = `
-                        <div class="gif-container">
-                            <img src="https://media.tenor.com/034xV69uX74AAAAi/bubu-dudu-bubu.gif" alt="Love Bear">
-                        </div>
-                        <h1>It's a Date! ❤️</h1>
-                        <p>Your choices have been sent directly to me. Can't wait! ✨</p>
-                    `;
-                }, (error) => {
-                    console.error('Failed to send...', error);
-                    alert("Oops! Something went wrong sending the email. Try again!");
-                    submitBtn.innerText = "Send to Me ✨";
-                    submitBtn.disabled = false;
-                });
         });
 
         // Floating Hearts
