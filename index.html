@@ -13,13 +13,36 @@
         }
 
         body {
-            background: linear-gradient(135deg, #ffe6ea 0%, #ffb3c1 100%);
+            background: #ffe6ea;
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
             position: relative;
+        }
+
+        /* Fullscreen Background Video Container */
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(255, 230, 234, 0.5) 0%, rgba(255, 179, 193, 0.6) 100%);
+        }
+
+        .video-background video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.45;
         }
 
         .container {
@@ -45,34 +68,6 @@
             color: #590d22;
             font-size: 1.1rem;
             margin-bottom: 25px;
-        }
-
-        .romantic-prompt {
-            font-style: italic;
-            font-weight: 600;
-            color: #ff4d6d;
-            margin-top: 15px;
-            margin-bottom: 10px;
-        }
-
-        .video-container {
-            position: relative;
-            width: 100%;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-            height: 0;
-            overflow: hidden;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-            margin-bottom: 25px;
-        }
-
-        .video-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 0;
         }
 
         .gif-container img {
@@ -162,12 +157,13 @@
         }
 
         .heart {
-            position: absolute;
+            position: fixed;
             color: #ff758f;
             font-size: 20px;
             pointer-events: none;
-            animation: floatUp 4s linear infinite;
+            animation: floatUp 4s linear forwards;
             opacity: 0;
+            z-index: 100;
         }
 
         @keyframes floatUp {
@@ -178,9 +174,11 @@
 </head>
 <body>
 
-    <audio id="bgMusic" loop preload="auto">
-        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-    </audio>
+    <div class="video-background">
+        <video id="bgVideo" autoplay muted loop playsinline>
+            <source src="1.mp4" type="video/mp4">
+        </video>
+    </div>
 
     <div class="container" id="proposalCard">
         <div class="gif-container">
@@ -200,17 +198,8 @@
         </div>
         <h1>YAYYYYY! 🥰</h1>
         <p>Let's make plans!</p>
-
-        <p class="romantic-prompt">Watch this video... with me? ✨</p>
-        <div class="video-container">
-            <iframe src="https://www.youtube.com/embed/2Vv-BfVoq4g" 
-                    title="Ed Sheeran - Perfect (Official Music Video)" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    allowfullscreen>
-            </iframe>
-        </div>
         
-        <form action="https://formspree.io/f/mgobowop" method="POST" id="dateForm">
+        <form id="dateForm">
             <div class="form-group">
                 <label for="datePicker">Pick a day when you are free:</label>
                 <input type="date" class="date-picker" id="datePicker" name="Date Selected" required>
@@ -221,8 +210,11 @@
                 <textarea class="text-input" id="dateDesc" name="Dream Date Description" placeholder="e.g., A cozy cafe coffee date, stargazing..." required></textarea>
             </div>
 
-            <button type="submit" class="submit-btn">Send to Me ✨</button>
+            <button type="submit" class="submit-btn" id="submitBtn">Send to Me ✨</button>
         </form>
+        <p id="formSuccess" style="display:none; color:#ff4d6d; font-weight:bold; margin-top:15px;">
+            Sent! Can't wait 🥰
+        </p>
     </div>
 
     <script>
@@ -230,23 +222,24 @@
         const successCard = document.getElementById('successCard');
         const yesBtn = document.getElementById('yesBtn');
         const noBtn = document.getElementById('noBtn');
-        const bgMusic = document.getElementById('bgMusic');
-        
-        let musicStarted = false;
+        const bgVideo = document.getElementById('bgVideo');
 
-        // Force browser to play the audio link upon any interaction
-        function startMusic() {
-            if (!musicStarted) {
-                bgMusic.volume = 0.5;
-                bgMusic.play()
-                    .then(() => musicStarted = true)
-                    .catch(err => console.log("Audio waiting for stronger interaction click."));
-            }
+        // Force play on load (some browsers need an explicit call)
+        bgVideo.play().catch(() => {});
+
+        // Unmute on first interaction — browsers block unmuted autoplay
+        function unmuteVideo() {
+            bgVideo.muted = false;
+            bgVideo.volume = 0.4;
+            bgVideo.play().catch(() => {});
+            document.removeEventListener('click', unmuteVideo);
+            document.removeEventListener('touchstart', unmuteVideo);
         }
+        document.addEventListener('click', unmuteVideo);
+        document.addEventListener('touchstart', unmuteVideo);
 
         // Runaway "No" Button logic
         function moveNoButton() {
-            startMusic(); // Tries playing music when they hover/touch the No button
             
             const maxX = window.innerWidth - noBtn.offsetWidth - 40;
             const maxY = window.innerHeight - noBtn.offsetHeight - 40;
@@ -254,6 +247,7 @@
             const randomY = Math.floor(Math.random() * maxY);
 
             noBtn.style.position = 'fixed';
+            noBtn.style.zIndex = '20';
             noBtn.style.left = randomX + 'px';
             noBtn.style.top = randomY + 'px';
         }
@@ -266,13 +260,29 @@
 
         // Click YES button
         yesBtn.addEventListener('click', () => {
-            startMusic(); // Absolutely triggers music here because it's a solid click event
             proposalCard.classList.add('hidden');
             successCard.classList.remove('hidden');
             startHeartRain();
         });
 
-        // Floating Hearts
+        // Form AJAX submit — stays on page instead of redirecting
+        document.getElementById('dateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+            try {
+                await fetch('https://formspree.io/f/mgobowop', {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' },
+                    body: new FormData(e.target),
+                });
+            } catch (_) { /* still show success even on network hiccup */ }
+            e.target.style.display = 'none';
+            document.getElementById('formSuccess').style.display = 'block';
+        });
+
+        // Floating Hearts Animation
         function startHeartRain() {
             setInterval(() => {
                 const heart = document.createElement('div');
