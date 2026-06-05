@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Be My Date? ❤️</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ffe6ea 0%, #ffb3c1 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            max-width: 450px;
+            width: 90%;
+            z-index: 10;
+            transition: all 0.5s ease;
+        }
+
+        h1 {
+            color: #ff4d6d;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        p {
+            color: #590d22;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+
+        .gif-container img {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 20px;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            position: relative;
+            height: 60px;
+            align-items: center;
+        }
+
+        button {
+            padding: 12px 35px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #yesBtn {
+            background-color: #ff4d6d;
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 77, 109, 0.4);
+        }
+
+        #yesBtn:hover {
+            transform: scale(1.1);
+            background-color: #ff758f;
+        }
+
+        #noBtn {
+            background-color: #a4133c;
+            color: white;
+            position: absolute;
+            transition: all 0.2s ease;
+        }
+
+        /* Success Screen Styles (Hidden initially) */
+        .hidden {
+            display: none !important;
+        }
+
+        .success-screen h1 {
+            color: #38b000;
+        }
+
+        .date-picker {
+            margin-top: 20px;
+            padding: 10px;
+            border: 2px solid #ff4d6d;
+            border-radius: 10px;
+            font-size: 1rem;
+            outline: none;
+            color: #590d22;
+        }
+
+        /* Floating Hearts Animation */
+        .heart {
+            position: absolute;
+            color: #ff758f;
+            font-size: 20px;
+            pointer-events: none;
+            animation: float Up 4s linear infinite;
+            opacity: 0;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-10vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Romantic Music (Using a license-free romantic instrumental track) -->
+    <audio id="bgMusic" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Main Proposal Card -->
+    <div class="container" id="proposalCard">
+        <div class="gif-container">
+            <!-- Cute Mocha Bear GIF -->
+            <img src="https://media.tenor.com/w9zXzY9tV7MAAAAi/mocha-cute.gif" alt="Cute Bear">
+        </div>
+        <h1>Will you go out with me?</h1>
+        <p>I promise it'll be unforgettable! ✨</p>
+        <div class="btn-group">
+            <button id="yesBtn">Yes!</button>
+            <button id="noBtn" style="left: 55%;">No</button>
+        </div>
+    </div>
+
+    <!-- Success Screen -->
+    <div class="container hidden" id="successCard">
+        <div class="gif-container">
+            <!-- Happy Dancing Bear GIF -->
+            <img src="https://media.tenor.com/X91Gf9G8v68AAAAi/bubu-dudu-bubu.gif" alt="Happy Bear">
+        </div>
+        <h1>YAYYYYY! 🥰</h1>
+        <p>You just made my day! Now, pick a day when you are free:</p>
+        <input type="date" class="date-picker" id="datePicker">
+    </div>
+
+    <script>
+        const proposalCard = document.getElementById('proposalCard');
+        const successCard = document.getElementById('successCard');
+        const yesBtn = document.getElementById('yesBtn');
+        const noBtn = document.getElementById('noBtn');
+        const bgMusic = document.getElementById('bgMusic');
+        let musicStarted = false;
+
+        // Function to start audio safely upon interaction
+        function startMusic() {
+            if (!musicStarted) {
+                bgMusic.volume = 0.4; // Set reasonable volume
+                bgMusic.play().catch(error => console.log("Audio play blocked until deeper interaction."));
+                musicStarted = true;
+            }
+        }
+
+        // Make the "No" button flee
+        function moveNoButton() {
+            startMusic(); // Trigger music on interaction attempt
+
+            // Get viewport boundaries minus button size dimensions roughly
+            const maxX = window.innerWidth - noBtn.offsetWidth - 40;
+            const maxY = window.innerHeight - noBtn.offsetHeight - 40;
+
+            // Generate random positions
+            const randomX = Math.floor(Math.random() * maxX);
+            const randomY = Math.floor(Math.random() * maxY);
+
+            // Change positioning to fixed so it can run anywhere on screen
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
+        }
+
+        // Event listeners for both desktop mouseover and mobile touch
+        noBtn.addEventListener('mouseover', moveNoButton);
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevents accidental clicking on mobile tap
+            moveNoButton();
+        });
+
+        // Click on YES button
+        yesBtn.addEventListener('click', () => {
+            startMusic();
+            proposalCard.classList.add('hidden');
+            successCard.classList.remove('hidden');
+            startHeartRain();
+        });
+
+        // Background Decorative Falling Hearts
+        function startHeartRain() {
+            setInterval(() => {
+                const heart = document.createElement('div');
+                heart.classList.add('heart');
+                heart.innerHTML = '❤️';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animationDuration = (Math.random() * 2 + 2) + 's'; // 2-4 seconds
+                heart.style.fontSize = (Math.random() * 15 + 15) + 'px'; // 15-30px
+                document.body.appendChild(heart);
+
+                // Clean up heart element after animation ends
+                setTimeout(() => {
+                    heart.remove();
+                }, 4000);
+            }, 300);
+        }
+    </script>
+</body>
+</html>
