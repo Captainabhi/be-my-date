@@ -47,6 +47,34 @@
             margin-bottom: 25px;
         }
 
+        .romantic-prompt {
+            font-style: italic;
+            font-weight: 600;
+            color: #ff4d6d;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            margin-bottom: 25px;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
         .gif-container img {
             width: 140px;
             height: 140px;
@@ -172,6 +200,15 @@
         </div>
         <h1>YAYYYYY! 🥰</h1>
         <p>Let's make plans!</p>
+
+        <p class="romantic-prompt">Watch this video... with me? ✨</p>
+        <div class="video-container">
+            <iframe src="https://www.youtube.com/embed/2Vv-BfVoq4g" 
+                    title="Ed Sheeran - Perfect (Official Music Video)" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowfullscreen>
+            </iframe>
+        </div>
         
         <form action="https://formspree.io/f/mgobowop" method="POST" id="dateForm">
             <div class="form-group">
